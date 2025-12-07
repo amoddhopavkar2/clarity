@@ -2,27 +2,84 @@
    CLARITY TODO - Modern Minimalist Styles
    ============================================ */
 
-/* CSS Custom Properties */
-:root {
-    /* Color Palette */
+/* CSS Custom Properties - Dark Theme (Default) */
+:root,
+[data-theme="dark"] {
+    /* Color Palette - Darker, more professional */
     --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     --gradient-accent: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     --gradient-success: linear-gradient(135deg, #00d9a5 0%, #00b894 100%);
-    --gradient-bg: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f1a 100%);
+    --gradient-bg: linear-gradient(135deg, #0a0a0f 0%, #0d0d14 50%, #08080c 100%);
 
-    --color-bg: #0f0f1a;
-    --color-surface: rgba(255, 255, 255, 0.05);
-    --color-surface-hover: rgba(255, 255, 255, 0.08);
-    --color-border: rgba(255, 255, 255, 0.1);
-    --color-text: #ffffff;
-    --color-text-muted: #a0a0b0;
-    --color-text-subtle: #6b6b7b;
+    --color-bg: #08080c;
+    --color-surface: rgba(255, 255, 255, 0.03);
+    --color-surface-hover: rgba(255, 255, 255, 0.06);
+    --color-surface-active: rgba(255, 255, 255, 0.08);
+    --color-border: rgba(255, 255, 255, 0.08);
+    --color-border-hover: rgba(255, 255, 255, 0.12);
+    --color-text: #f0f0f5;
+    --color-text-muted: #9090a0;
+    --color-text-subtle: #606070;
 
     --color-primary: #667eea;
+    --color-primary-hover: #7b8fed;
     --color-accent: #f093fb;
     --color-success: #00d9a5;
+    --color-warning: #f5a623;
     --color-danger: #f5576c;
 
+    --color-overdue: rgba(245, 87, 108, 0.15);
+    --color-overdue-border: rgba(245, 87, 108, 0.3);
+    --color-due-soon: rgba(245, 166, 35, 0.15);
+    --color-due-soon-border: rgba(245, 166, 35, 0.3);
+
+    --input-bg: rgba(255, 255, 255, 0.05);
+    --input-bg-focus: rgba(255, 255, 255, 0.08);
+    --modal-bg: rgba(12, 12, 18, 0.98);
+
+    /* Orb colors for dark mode */
+    --orb-opacity: 0.25;
+}
+
+/* Light Theme */
+[data-theme="light"] {
+    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-accent: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --gradient-success: linear-gradient(135deg, #00d9a5 0%, #00b894 100%);
+    --gradient-bg: linear-gradient(135deg, #f8f9fc 0%, #eef0f5 50%, #f5f6fa 100%);
+
+    --color-bg: #f5f6fa;
+    --color-surface: rgba(255, 255, 255, 0.8);
+    --color-surface-hover: rgba(255, 255, 255, 0.95);
+    --color-surface-active: rgba(255, 255, 255, 1);
+    --color-border: rgba(0, 0, 0, 0.08);
+    --color-border-hover: rgba(0, 0, 0, 0.12);
+    --color-text: #1a1a2e;
+    --color-text-muted: #5a5a70;
+    --color-text-subtle: #8a8aa0;
+
+    --color-primary: #5a6fd6;
+    --color-primary-hover: #4a5fc6;
+    --color-accent: #e080eb;
+    --color-success: #00c495;
+    --color-warning: #e59520;
+    --color-danger: #e5475c;
+
+    --color-overdue: rgba(229, 71, 92, 0.1);
+    --color-overdue-border: rgba(229, 71, 92, 0.25);
+    --color-due-soon: rgba(229, 149, 32, 0.1);
+    --color-due-soon-border: rgba(229, 149, 32, 0.25);
+
+    --input-bg: rgba(255, 255, 255, 0.9);
+    --input-bg-focus: rgba(255, 255, 255, 1);
+    --modal-bg: rgba(255, 255, 255, 0.98);
+
+    /* Orb colors for light mode */
+    --orb-opacity: 0.15;
+}
+
+/* Shared variables */
+:root {
     /* Spacing */
     --spacing-xs: 0.25rem;
     --spacing-sm: 0.5rem;
@@ -39,10 +96,10 @@
     --radius-full: 50%;
 
     /* Shadows */
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
-    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
-    --shadow-glow: 0 0 40px rgba(102, 126, 234, 0.3);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.25);
+    --shadow-glow: 0 0 40px rgba(102, 126, 234, 0.2);
 
     /* Transitions */
     --transition-fast: 150ms ease;
@@ -73,6 +130,7 @@ body {
     min-height: 100vh;
     line-height: 1.5;
     overflow-x: hidden;
+    transition: background var(--transition-normal), color var(--transition-normal);
 }
 
 /* App Container */
@@ -83,7 +141,7 @@ body {
     align-items: flex-start;
     justify-content: center;
     padding: var(--spacing-lg);
-    padding-top: clamp(2rem, 8vh, 6rem);
+    padding-top: clamp(2rem, 6vh, 4rem);
 }
 
 /* Background Decorations */
@@ -92,32 +150,34 @@ body {
     inset: 0;
     background: var(--gradient-bg);
     z-index: -2;
+    transition: background var(--transition-normal);
 }
 
 .bg-orb {
     position: fixed;
     border-radius: var(--radius-full);
-    filter: blur(100px);
-    opacity: 0.4;
+    filter: blur(120px);
+    opacity: var(--orb-opacity);
     z-index: -1;
     animation: float 20s ease-in-out infinite;
+    transition: opacity var(--transition-normal);
 }
 
 .bg-orb-1 {
-    width: 600px;
-    height: 600px;
+    width: 500px;
+    height: 500px;
     background: var(--gradient-primary);
-    top: -200px;
-    right: -200px;
+    top: -150px;
+    right: -150px;
     animation-delay: -5s;
 }
 
 .bg-orb-2 {
-    width: 500px;
-    height: 500px;
+    width: 400px;
+    height: 400px;
     background: var(--gradient-accent);
-    bottom: -200px;
-    left: -200px;
+    bottom: -150px;
+    left: -150px;
     animation-delay: -10s;
 }
 
@@ -131,7 +191,7 @@ body {
 /* Main App Container */
 .todo-app {
     width: 100%;
-    max-width: 520px;
+    max-width: 540px;
     background: var(--color-surface);
     backdrop-filter: blur(40px);
     -webkit-backdrop-filter: blur(40px);
@@ -139,6 +199,7 @@ body {
     border-radius: var(--radius-xl);
     padding: var(--spacing-xl);
     box-shadow: var(--shadow-lg), var(--shadow-glow);
+    transition: background var(--transition-normal), border-color var(--transition-normal);
 }
 
 /* Header */
@@ -192,7 +253,7 @@ body {
 .task-input {
     flex: 1;
     padding: var(--spacing-md) var(--spacing-lg);
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--input-bg);
     border: 2px solid transparent;
     border-radius: var(--radius-lg);
     color: var(--color-text);
@@ -207,7 +268,7 @@ body {
 }
 
 .task-input:focus {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--input-bg-focus);
     border-color: var(--color-primary);
     box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
 }
@@ -236,14 +297,87 @@ body {
     transform: scale(0.98);
 }
 
+/* Task Options */
+.task-options {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    flex-wrap: wrap;
+}
+
+.task-option {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex: 1;
+    min-width: 180px;
+}
+
+.option-label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.option-label svg {
+    color: var(--color-text-subtle);
+}
+
+.recurring-label {
+    cursor: pointer;
+}
+
+.recurring-checkbox {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--color-primary);
+    cursor: pointer;
+}
+
+.date-input,
+.recurrence-select {
+    flex: 1;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: var(--input-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    font-size: 0.85rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+.date-input:focus,
+.recurrence-select:focus {
+    border-color: var(--color-primary);
+    outline: none;
+}
+
+.recurrence-select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* Filter Section */
 .filter-section {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
     margin-bottom: var(--spacing-lg);
 }
 
 .filter-tabs {
     display: flex;
-    background: rgba(255, 255, 255, 0.05);
+    flex: 1;
+    background: var(--color-surface);
     border-radius: var(--radius-md);
     padding: 4px;
     gap: 4px;
@@ -256,7 +390,7 @@ body {
     border: none;
     border-radius: var(--radius-sm);
     color: var(--color-text-muted);
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     font-weight: 500;
     font-family: inherit;
     cursor: pointer;
@@ -265,13 +399,38 @@ body {
 
 .filter-btn:hover {
     color: var(--color-text);
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--color-surface-hover);
 }
 
 .filter-btn.active {
     background: var(--gradient-primary);
     color: white;
     box-shadow: var(--shadow-sm);
+}
+
+.sort-dropdown {
+    flex-shrink: 0;
+}
+
+.sort-select {
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+.sort-select:hover {
+    border-color: var(--color-border-hover);
+}
+
+.sort-select:focus {
+    border-color: var(--color-primary);
+    outline: none;
 }
 
 /* Tasks Container */
@@ -290,7 +449,7 @@ body {
 /* Task Item */
 .task-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--spacing-md);
     padding: var(--spacing-md) var(--spacing-lg);
     background: var(--color-surface);
@@ -313,7 +472,7 @@ body {
 
 .task-item:hover {
     background: var(--color-surface-hover);
-    border-color: rgba(255, 255, 255, 0.15);
+    border-color: var(--color-border-hover);
     transform: translateX(4px);
 }
 
@@ -324,6 +483,16 @@ body {
 .task-item.completed .task-text {
     text-decoration: line-through;
     color: var(--color-text-subtle);
+}
+
+.task-item.overdue {
+    background: var(--color-overdue);
+    border-color: var(--color-overdue-border);
+}
+
+.task-item.due-soon {
+    background: var(--color-due-soon);
+    border-color: var(--color-due-soon-border);
 }
 
 .task-item.removing {
@@ -341,13 +510,14 @@ body {
 .checkbox-wrapper {
     position: relative;
     flex-shrink: 0;
+    margin-top: 2px;
 }
 
 .task-checkbox {
     appearance: none;
     -webkit-appearance: none;
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     border: 2px solid var(--color-text-subtle);
     border-radius: var(--radius-sm);
     cursor: pointer;
@@ -367,10 +537,10 @@ body {
 .task-checkbox:checked::after {
     content: '';
     position: absolute;
-    left: 7px;
-    top: 3px;
-    width: 6px;
-    height: 11px;
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
     border: solid white;
     border-width: 0 2.5px 2.5px 0;
     transform: rotate(45deg);
@@ -388,20 +558,75 @@ body {
     }
 }
 
-/* Task Text */
-.task-text {
+/* Task Content */
+.task-content {
     flex: 1;
+    min-width: 0;
+}
+
+.task-text {
     font-size: 0.95rem;
     color: var(--color-text);
     word-break: break-word;
+    line-height: 1.5;
     transition: all var(--transition-normal);
+}
+
+.task-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-xs);
+    flex-wrap: wrap;
+}
+
+.task-due-date {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    background: var(--color-surface-active);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.task-due-date.overdue {
+    background: var(--color-overdue);
+    color: var(--color-danger);
+}
+
+.task-due-date.due-soon {
+    background: var(--color-due-soon);
+    color: var(--color-warning);
+}
+
+.task-due-date svg {
+    width: 12px;
+    height: 12px;
+}
+
+.task-recurring-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    background: rgba(102, 126, 234, 0.15);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    color: var(--color-primary);
+}
+
+.task-recurring-badge svg {
+    width: 12px;
+    height: 12px;
 }
 
 /* Edit Input */
 .task-edit-input {
     flex: 1;
     padding: var(--spacing-xs) var(--spacing-sm);
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--input-bg);
     border: 2px solid var(--color-primary);
     border-radius: var(--radius-sm);
     color: var(--color-text);
@@ -416,6 +641,7 @@ body {
     gap: var(--spacing-xs);
     opacity: 0;
     transition: opacity var(--transition-normal);
+    flex-shrink: 0;
 }
 
 .task-item:hover .task-actions {
@@ -437,7 +663,7 @@ body {
 }
 
 .action-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--color-surface-active);
     color: var(--color-text);
 }
 
@@ -513,7 +739,7 @@ body {
 
 .task-count {
     color: var(--color-text-muted);
-    font-size: 0.875rem;
+    font-size: 0.85rem;
 }
 
 .clear-btn {
@@ -543,76 +769,6 @@ body {
     background: transparent;
     border-color: var(--color-border);
     color: var(--color-text-muted);
-}
-
-/* Responsive Design */
-@media (max-width: 600px) {
-    .app-container {
-        padding: var(--spacing-md);
-        padding-top: var(--spacing-lg);
-    }
-
-    .todo-app {
-        padding: var(--spacing-lg);
-        border-radius: var(--radius-lg);
-    }
-
-    .app-title {
-        font-size: 2rem;
-    }
-
-    .task-item {
-        padding: var(--spacing-md);
-    }
-
-    .task-actions {
-        opacity: 1;
-    }
-
-    .filter-btn {
-        padding: var(--spacing-sm);
-        font-size: 0.8rem;
-    }
-}
-
-@media (max-width: 400px) {
-    .app-title {
-        font-size: 1.75rem;
-    }
-
-    .add-btn {
-        width: 48px;
-        height: 48px;
-    }
-
-    .task-input {
-        padding: var(--spacing-md);
-    }
-}
-
-/* Accessibility - Reduced Motion */
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-
-    .bg-orb {
-        animation: none;
-    }
-}
-
-/* Focus Visible for Keyboard Navigation */
-.filter-btn:focus-visible,
-.add-btn:focus-visible,
-.action-btn:focus-visible,
-.clear-btn:focus-visible,
-.task-checkbox:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
 }
 
 /* ============================================
@@ -707,12 +863,14 @@ body {
     margin-bottom: var(--spacing-lg);
     padding-bottom: var(--spacing-md);
     border-bottom: 1px solid var(--color-border);
+    gap: var(--spacing-md);
 }
 
 .user-info {
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
+    min-width: 0;
 }
 
 .user-avatar {
@@ -721,16 +879,60 @@ body {
     border-radius: var(--radius-full);
     border: 2px solid var(--color-border);
     object-fit: cover;
+    flex-shrink: 0;
 }
 
 .user-name {
     color: var(--color-text);
     font-size: 0.9rem;
     font-weight: 500;
-    max-width: 150px;
+    max-width: 140px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.theme-toggle-btn {
+    width: 36px;
+    height: 36px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-normal);
+}
+
+.theme-toggle-btn:hover {
+    background: var(--color-surface-hover);
+    border-color: var(--color-border-hover);
+    color: var(--color-text);
+}
+
+/* Theme toggle icon visibility */
+[data-theme="dark"] .sun-icon {
+    display: block;
+}
+
+[data-theme="dark"] .moon-icon {
+    display: none;
+}
+
+[data-theme="light"] .sun-icon {
+    display: none;
+}
+
+[data-theme="light"] .moon-icon {
+    display: block;
 }
 
 .logout-btn {
@@ -794,18 +996,207 @@ body {
     font-size: 0.9rem;
 }
 
+/* ============================================
+   MODAL STYLES
+   ============================================ */
+
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-lg);
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    position: relative;
+    background: var(--modal-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    max-width: 400px;
+    width: 100%;
+    box-shadow: var(--shadow-lg);
+    animation: modalIn var(--transition-normal) ease-out;
+}
+
+@keyframes modalIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.modal-content h3 {
+    color: var(--color-text);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+}
+
+.modal-content p {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    margin-bottom: var(--spacing-lg);
+    line-height: 1.5;
+}
+
+.modal-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: flex-end;
+}
+
+.modal-btn {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+.modal-btn-cancel {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+}
+
+.modal-btn-cancel:hover {
+    background: var(--color-surface-hover);
+    border-color: var(--color-border-hover);
+}
+
+.modal-btn-confirm {
+    background: var(--color-danger);
+    border: none;
+    color: white;
+}
+
+.modal-btn-confirm:hover {
+    background: #e04458;
+}
+
+/* ============================================
+   TOAST NOTIFICATION STYLES
+   ============================================ */
+
+.toast {
+    position: fixed;
+    bottom: var(--spacing-xl);
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--color-text);
+    color: var(--color-bg);
+    padding: var(--spacing-md) var(--spacing-xl);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    z-index: 1001;
+    transition: transform var(--transition-normal);
+}
+
+.toast.show {
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast.hidden {
+    display: none;
+}
+
+.toast.success {
+    background: var(--color-success);
+    color: white;
+}
+
+.toast.error {
+    background: var(--color-danger);
+    color: white;
+}
+
 /* Hidden utility class */
 .hidden {
     display: none !important;
 }
 
 /* ============================================
-   RESPONSIVE ADJUSTMENTS FOR AUTH
+   RESPONSIVE DESIGN
    ============================================ */
 
 @media (max-width: 600px) {
-    .auth-card {
-        padding: var(--spacing-xl);
+    .app-container {
+        padding: var(--spacing-md);
+        padding-top: var(--spacing-lg);
+    }
+
+    .todo-app {
+        padding: var(--spacing-lg);
+        border-radius: var(--radius-lg);
+    }
+
+    .app-title {
+        font-size: 2rem;
+    }
+
+    .task-item {
+        padding: var(--spacing-md);
+    }
+
+    .task-actions {
+        opacity: 1;
+    }
+
+    .filter-section {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .filter-tabs {
+        width: 100%;
+    }
+
+    .sort-dropdown {
+        width: 100%;
+    }
+
+    .sort-select {
+        width: 100%;
+    }
+
+    .filter-btn {
+        padding: var(--spacing-sm);
+        font-size: 0.8rem;
+    }
+
+    .task-options {
+        flex-direction: column;
+    }
+
+    .task-option {
+        min-width: 100%;
+    }
+
+    .user-header {
+        flex-wrap: wrap;
     }
 
     .user-name {
@@ -815,4 +1206,51 @@ body {
     .logout-btn span {
         display: none;
     }
+}
+
+@media (max-width: 400px) {
+    .app-title {
+        font-size: 1.75rem;
+    }
+
+    .add-btn {
+        width: 48px;
+        height: 48px;
+    }
+
+    .task-input {
+        padding: var(--spacing-md);
+    }
+
+    .auth-card {
+        padding: var(--spacing-xl);
+    }
+}
+
+/* Accessibility - Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .bg-orb {
+        animation: none;
+    }
+}
+
+/* Focus Visible for Keyboard Navigation */
+.filter-btn:focus-visible,
+.add-btn:focus-visible,
+.action-btn:focus-visible,
+.clear-btn:focus-visible,
+.task-checkbox:focus-visible,
+.theme-toggle-btn:focus-visible,
+.logout-btn:focus-visible,
+.modal-btn:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
 }
