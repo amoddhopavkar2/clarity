@@ -1,79 +1,281 @@
 /**
  * Clarity Todo - Modern Todo Application
- * A clean, minimalist todo app with smooth animations and localStorage persistence
+ * With Supabase Authentication and API Integration
  */
 
-class TodoApp {
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+// Configuration from environment variables (Vite)
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+// Initialize Supabase client
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+class ClarityApp {
     constructor() {
-        // State
+        this.user = null;
+        this.session = null;
+        this.todoApp = null;
+
+        // DOM Elements
+        this.authScreen = document.getElementById('authScreen');
+        this.todoAppEl = document.getElementById('todoApp');
+        this.googleSignInBtn = document.getElementById('googleSignInBtn');
+        this.logoutBtn = document.getElementById('logoutBtn');
+        this.userAvatar = document.getElementById('userAvatar');
+        this.userName = document.getElementById('userName');
+
+        this.init();
+    }
+
+    async init() {
+        // Set up auth state listener
+        supabase.auth.onAuthStateChange((event, session) => {
+            this.handleAuthChange(event, session);
+        });
+
+        // Check current session
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            this.handleAuthChange('INITIAL_SESSION', session);
+        }
+
+        // Bind auth events
+        this.googleSignInBtn.addEventListener('click', () => this.signInWithGoogle());
+        this.logoutBtn.addEventListener('click', () => this.signOut());
+    }
+
+    async handleAuthChange(event, session) {
+        this.session = session;
+        this.user = session?.user || null;
+
+        if (this.user) {
+            this.showApp();
+        } else {
+            this.showAuth();
+        }
+    }
+
+    async signInWithGoogle() {
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: window.location.origin
+            }
+        });
+
+        if (error) {
+            console.error('Error signing in:', error);
+            alert('Failed to sign in. Please try again.');
+        }
+    }
+
+    async signOut() {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+            console.error('Error signing out:', error);
+        }
+    }
+
+    showAuth() {
+        this.authScreen.classList.remove('hidden');
+        this.todoAppEl.classList.add('hidden');
+
+        if (this.todoApp) {
+            this.todoApp = null;
+        }
+    }
+
+    showApp() {
+        this.authScreen.classList.add('hidden');
+        this.todoAppEl.classList.remove('hidden');
+
+        // Update user info
+        const metadata = this.user.user_metadata;
+        this.userName.textContent = metadata?.full_name || metadata?.name || this.user.email;
+        this.userAvatar.src = metadata?.avatar_url || metadata?.picture || this.getDefaultAvatar();
+        this.userAvatar.onerror = () => {
+            this.userAvatar.src = this.getDefaultAvatar();
+        };
+
+        // Initialize todo app
+        if (!this.todoApp) {
+            this.todoApp = new TodoApp(this.session);
+        }
+    }
+
+    getDefaultAvatar() {
+        // Generate a simple colored avatar based on user email
+        const colors = ['667eea', '764ba2', 'f093fb', 'f5576c', '00d9a5'];
+        const index = this.user.email.charCodeAt(0) % colors.length;
+        const initial = (this.user.user_metadata?.full_name || this.user.email)[0].toUpperCase();
+        return `https://ui-avatars.com/api/?name=${initial}&background=${colors[index]}&color=fff&size=40`;
+    }
+}
+
+class TodoApp {
+    constructor(session) {
+        this.session = session;
         this.todos = [];
         this.currentFilter = 'all';
         this.editingId = null;
+        this.isLoading = false;
 
         // DOM Elements
         this.taskInput = document.getElementById('taskInput');
         this.addBtn = document.getElementById('addBtn');
         this.taskList = document.getElementById('taskList');
         this.emptyState = document.getElementById('emptyState');
+        this.loadingState = document.getElementById('loadingState');
         this.taskCount = document.getElementById('taskCount');
         this.clearCompletedBtn = document.getElementById('clearCompletedBtn');
         this.filterBtns = document.querySelectorAll('.filter-btn');
 
-        // Initialize
-        this.loadFromStorage();
+        this.init();
+    }
+
+    async init() {
         this.bindEvents();
-        this.render();
+        await this.loadTasks();
     }
 
-    // Generate unique ID
-    generateId() {
-        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    getAuthHeaders() {
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.session.access_token}`
+        };
     }
 
-    // LocalStorage Operations
-    loadFromStorage() {
+    // API Operations
+    async loadTasks() {
+        this.setLoading(true);
         try {
-            const stored = localStorage.getItem('clarity-todos');
-            this.todos = stored ? JSON.parse(stored) : [];
-        } catch (e) {
-            console.error('Error loading todos from storage:', e);
+            const response = await fetch(`${API_URL}/api/tasks`, {
+                headers: this.getAuthHeaders()
+            });
+
+            if (!response.ok) throw new Error('Failed to fetch tasks');
+
+            this.todos = await response.json();
+            this.render();
+        } catch (error) {
+            console.error('Error loading tasks:', error);
             this.todos = [];
+            this.render();
+        } finally {
+            this.setLoading(false);
         }
     }
 
-    saveToStorage() {
+    async createTask(text) {
         try {
-            localStorage.setItem('clarity-todos', JSON.stringify(this.todos));
-        } catch (e) {
-            console.error('Error saving todos to storage:', e);
+            const response = await fetch(`${API_URL}/api/tasks`, {
+                method: 'POST',
+                headers: this.getAuthHeaders(),
+                body: JSON.stringify({ text })
+            });
+
+            if (!response.ok) throw new Error('Failed to create task');
+
+            const task = await response.json();
+            this.todos.unshift(task);
+            this.render();
+        } catch (error) {
+            console.error('Error creating task:', error);
+            alert('Failed to create task. Please try again.');
+        }
+    }
+
+    async updateTask(id, updates) {
+        try {
+            const response = await fetch(`${API_URL}/api/tasks/${id}`, {
+                method: 'PUT',
+                headers: this.getAuthHeaders(),
+                body: JSON.stringify(updates)
+            });
+
+            if (!response.ok) throw new Error('Failed to update task');
+
+            const updatedTask = await response.json();
+            const index = this.todos.findIndex(t => t.id === id);
+            if (index !== -1) {
+                this.todos[index] = updatedTask;
+            }
+            this.render();
+        } catch (error) {
+            console.error('Error updating task:', error);
+            alert('Failed to update task. Please try again.');
+        }
+    }
+
+    async deleteTaskFromServer(id) {
+        try {
+            const response = await fetch(`${API_URL}/api/tasks/${id}`, {
+                method: 'DELETE',
+                headers: this.getAuthHeaders()
+            });
+
+            if (!response.ok) throw new Error('Failed to delete task');
+
+            this.todos = this.todos.filter(t => t.id !== id);
+            this.render();
+        } catch (error) {
+            console.error('Error deleting task:', error);
+            alert('Failed to delete task. Please try again.');
+        }
+    }
+
+    async clearCompletedFromServer() {
+        try {
+            const response = await fetch(`${API_URL}/api/tasks/completed/all`, {
+                method: 'DELETE',
+                headers: this.getAuthHeaders()
+            });
+
+            if (!response.ok) throw new Error('Failed to clear completed tasks');
+
+            this.todos = this.todos.filter(t => !t.completed);
+            this.render();
+        } catch (error) {
+            console.error('Error clearing completed tasks:', error);
+            alert('Failed to clear completed tasks. Please try again.');
+        }
+    }
+
+    setLoading(loading) {
+        this.isLoading = loading;
+        if (loading) {
+            this.loadingState.classList.remove('hidden');
+            this.taskList.classList.add('hidden');
+            this.emptyState.classList.add('hidden');
+        } else {
+            this.loadingState.classList.add('hidden');
+            this.taskList.classList.remove('hidden');
         }
     }
 
     // Event Bindings
     bindEvents() {
-        // Add task on button click
         this.addBtn.addEventListener('click', () => this.addTask());
 
-        // Add task on Enter key
         this.taskInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 this.addTask();
             }
         });
 
-        // Filter buttons
         this.filterBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 this.setFilter(btn.dataset.filter);
             });
         });
 
-        // Clear completed
         this.clearCompletedBtn.addEventListener('click', () => {
             this.clearCompleted();
         });
 
-        // Delegate task list events
         this.taskList.addEventListener('click', (e) => this.handleTaskClick(e));
         this.taskList.addEventListener('change', (e) => this.handleTaskChange(e));
         this.taskList.addEventListener('keydown', (e) => this.handleTaskKeydown(e));
@@ -84,26 +286,15 @@ class TodoApp {
         const text = this.taskInput.value.trim();
         if (!text) return;
 
-        const todo = {
-            id: this.generateId(),
-            text: text,
-            completed: false,
-            createdAt: Date.now()
-        };
-
-        this.todos.unshift(todo);
-        this.saveToStorage();
+        this.createTask(text);
         this.taskInput.value = '';
         this.taskInput.focus();
-        this.render();
     }
 
     toggleTask(id) {
         const todo = this.todos.find(t => t.id === id);
         if (todo) {
-            todo.completed = !todo.completed;
-            this.saveToStorage();
-            this.render();
+            this.updateTask(id, { completed: !todo.completed });
         }
     }
 
@@ -112,9 +303,7 @@ class TodoApp {
         if (taskEl) {
             taskEl.classList.add('removing');
             setTimeout(() => {
-                this.todos = this.todos.filter(t => t.id !== id);
-                this.saveToStorage();
-                this.render();
+                this.deleteTaskFromServer(id);
             }, 250);
         }
     }
@@ -123,7 +312,6 @@ class TodoApp {
         this.editingId = id;
         this.render();
 
-        // Focus the input after render
         const input = this.taskList.querySelector('.task-edit-input');
         if (input) {
             input.focus();
@@ -138,13 +326,8 @@ class TodoApp {
             return;
         }
 
-        const todo = this.todos.find(t => t.id === id);
-        if (todo) {
-            todo.text = text;
-            this.saveToStorage();
-        }
+        this.updateTask(id, { text });
         this.editingId = null;
-        this.render();
     }
 
     cancelEdit() {
@@ -152,7 +335,6 @@ class TodoApp {
         this.render();
     }
 
-    // Filter Operations
     setFilter(filter) {
         this.currentFilter = filter;
         this.filterBtns.forEach(btn => {
@@ -172,15 +354,12 @@ class TodoApp {
         }
     }
 
-    // Clear Operations
     clearCompleted() {
         const completedItems = this.taskList.querySelectorAll('.task-item.completed');
         completedItems.forEach(item => item.classList.add('removing'));
 
         setTimeout(() => {
-            this.todos = this.todos.filter(t => !t.completed);
-            this.saveToStorage();
-            this.render();
+            this.clearCompletedFromServer();
         }, 250);
     }
 
@@ -191,19 +370,16 @@ class TodoApp {
 
         const id = taskItem.dataset.id;
 
-        // Delete button
         if (e.target.closest('.delete-btn')) {
             this.deleteTask(id);
             return;
         }
 
-        // Edit button
         if (e.target.closest('.edit-btn')) {
             this.startEditing(id);
             return;
         }
 
-        // Save button
         if (e.target.closest('.save-btn')) {
             const input = taskItem.querySelector('.task-edit-input');
             if (input) {
@@ -212,7 +388,6 @@ class TodoApp {
             return;
         }
 
-        // Cancel button
         if (e.target.closest('.cancel-btn')) {
             this.cancelEdit();
             return;
@@ -306,7 +481,6 @@ class TodoApp {
         const active = this.todos.filter(t => !t.completed).length;
         const completed = total - active;
 
-        // Update count text
         if (this.currentFilter === 'active') {
             this.taskCount.textContent = `${active} active task${active !== 1 ? 's' : ''}`;
         } else if (this.currentFilter === 'completed') {
@@ -315,21 +489,19 @@ class TodoApp {
             this.taskCount.textContent = `${total} task${total !== 1 ? 's' : ''}`;
         }
 
-        // Update clear button state
         this.clearCompletedBtn.disabled = completed === 0;
     }
 
     render() {
+        if (this.isLoading) return;
+
         const filteredTodos = this.getFilteredTodos();
 
-        // Clear existing tasks
         this.taskList.innerHTML = '';
 
-        // Show/hide empty state
         if (filteredTodos.length === 0) {
             this.emptyState.classList.remove('hidden');
 
-            // Customize empty state message based on filter
             const h3 = this.emptyState.querySelector('h3');
             const p = this.emptyState.querySelector('p');
 
@@ -346,19 +518,17 @@ class TodoApp {
         } else {
             this.emptyState.classList.add('hidden');
 
-            // Render tasks
             filteredTodos.forEach(todo => {
                 const taskEl = this.createTaskElement(todo);
                 this.taskList.appendChild(taskEl);
             });
         }
 
-        // Update statistics
         this.updateStats();
     }
 }
 
 // Initialize app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    new TodoApp();
+    new ClarityApp();
 });
