@@ -11,6 +11,9 @@ const { createClient } = require('@supabase/supabase-js');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Disable ETag generation to prevent 304 responses
+app.set('etag', false);
+
 // Initialize Supabase client
 const supabase = createClient(
     process.env.SUPABASE_URL,
@@ -55,6 +58,16 @@ app.options('*', cors());
 // Request logging middleware
 app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${req.headers.origin || 'none'}`);
+    next();
+});
+
+// Disable caching for all API routes
+app.use('/api', (req, res, next) => {
+    res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+    });
     next();
 });
 

@@ -333,7 +333,8 @@ class TodoApp {
         try {
             const response = await fetch(`${API_URL}/api/tasks`, {
                 method: 'GET',
-                headers: this.getAuthHeaders()
+                headers: this.getAuthHeaders(),
+                cache: 'no-store' // Prevent browser caching
             });
 
             console.log('Tasks response status:', response.status);
@@ -379,7 +380,8 @@ class TodoApp {
             const response = await fetch(`${API_URL}/api/tasks`, {
                 method: 'POST',
                 headers: this.getAuthHeaders(),
-                body: JSON.stringify({ text })
+                body: JSON.stringify({ text }),
+                cache: 'no-store'
             });
 
             if (!response.ok) {
@@ -406,7 +408,8 @@ class TodoApp {
             const response = await fetch(`${API_URL}/api/tasks/${id}`, {
                 method: 'PUT',
                 headers: this.getAuthHeaders(),
-                body: JSON.stringify(updates)
+                body: JSON.stringify(updates),
+                cache: 'no-store'
             });
 
             if (!response.ok) {
@@ -431,7 +434,8 @@ class TodoApp {
             console.log('Deleting task:', id);
             const response = await fetch(`${API_URL}/api/tasks/${id}`, {
                 method: 'DELETE',
-                headers: this.getAuthHeaders()
+                headers: this.getAuthHeaders(),
+                cache: 'no-store'
             });
 
             if (!response.ok) {
@@ -453,7 +457,8 @@ class TodoApp {
             console.log('Clearing completed tasks');
             const response = await fetch(`${API_URL}/api/tasks/completed/all`, {
                 method: 'DELETE',
-                headers: this.getAuthHeaders()
+                headers: this.getAuthHeaders(),
+                cache: 'no-store'
             });
 
             if (!response.ok) {
