@@ -109,8 +109,11 @@ class ClarityApp {
         this.session = null;
         this.todoApp = null;
         this.theme = 'dark';
+        this.authInitialized = false;
+        this.pendingAuthEvent = null;
 
         // DOM Elements
+        this.initialLoading = document.getElementById('initialLoading');
         this.authScreen = document.getElementById('authScreen');
         this.todoAppEl = document.getElementById('todoApp');
         this.googleSignInBtn = document.getElementById('googleSignInBtn');
@@ -131,18 +134,46 @@ class ClarityApp {
         this.logoutBtn.addEventListener('click', () => this.signOut());
         this.themeToggleBtn.addEventListener('click', () => this.toggleTheme());
 
-        // Set up auth state listener
+        // Set up auth state listener BEFORE checking session
+        // This ensures we don't miss any auth state changes
         supabase.auth.onAuthStateChange((event, session) => {
-            console.log('Auth state changed:', event);
+            console.log('Auth state changed:', event, 'session:', session ? 'present' : 'none');
+
+            // If we haven't initialized yet, store the event for later
+            if (!this.authInitialized) {
+                console.log('Auth not initialized yet, storing event');
+                this.pendingAuthEvent = { event, session };
+                return;
+            }
+
             this.handleAuthChange(event, session);
         });
 
-        // Check current session
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log('Initial session:', session ? 'found' : 'none');
-        if (session) {
-            this.handleAuthChange('INITIAL_SESSION', session);
+        // Get the current session - this is the source of truth on page load
+        const { data: { session }, error } = await supabase.auth.getSession();
+
+        if (error) {
+            console.error('Error getting session:', error);
         }
+
+        console.log('Initial session check:', session ? 'found' : 'none');
+
+        // Mark auth as initialized
+        this.authInitialized = true;
+
+        // Use the session from getSession, or fall back to pending auth event
+        if (session) {
+            // We have a valid session from getSession
+            await this.handleAuthChange('INITIAL_SESSION', session);
+        } else if (this.pendingAuthEvent?.session) {
+            // Use the pending auth event if getSession didn't return a session
+            await this.handleAuthChange(this.pendingAuthEvent.event, this.pendingAuthEvent.session);
+        } else {
+            // No session - show auth screen
+            this.showAuth();
+        }
+
+        this.pendingAuthEvent = null;
     }
 
     loadTheme() {
@@ -161,14 +192,15 @@ class ClarityApp {
         this.setTheme(newTheme);
     }
 
-    handleAuthChange(event, session) {
+    async handleAuthChange(event, session) {
         this.session = session;
         this.user = session?.user || null;
 
         console.log('Handling auth change:', event, 'user:', this.user?.email);
+        console.log('Session access_token present:', !!session?.access_token);
 
-        if (this.user) {
-            this.showApp();
+        if (this.user && session?.access_token) {
+            await this.showApp();
         } else {
             this.showAuth();
         }
@@ -210,6 +242,9 @@ class ClarityApp {
     }
 
     showAuth() {
+        // Hide initial loading
+        this.initialLoading.classList.add('hidden');
+        // Show auth screen
         this.authScreen.classList.remove('hidden');
         this.todoAppEl.classList.add('hidden');
 
@@ -218,7 +253,9 @@ class ClarityApp {
         }
     }
 
-    showApp() {
+    async showApp() {
+        // Hide initial loading and auth screen
+        this.initialLoading.classList.add('hidden');
         this.authScreen.classList.add('hidden');
         this.todoAppEl.classList.remove('hidden');
 
@@ -230,10 +267,15 @@ class ClarityApp {
             this.userAvatar.src = this.getDefaultAvatar();
         };
 
-        // Initialize todo app if not already initialized
+        // Initialize todo app if not already initialized, or update session if it changed
         if (!this.todoApp) {
-            console.log('Initializing TodoApp with session');
+            console.log('Initializing TodoApp with session, token:', this.session.access_token?.substring(0, 20) + '...');
             this.todoApp = new TodoApp(this.session);
+        } else if (this.todoApp.session.access_token !== this.session.access_token) {
+            // Session changed (e.g., token refresh), update the TodoApp
+            console.log('Session token changed, updating TodoApp');
+            this.todoApp.session = this.session;
+            await this.todoApp.loadTasks();
         }
     }
 
@@ -286,26 +328,42 @@ class TodoApp {
     async loadTasks() {
         this.setLoading(true);
         console.log('Loading tasks from API...');
+        console.log('Using token:', this.session.access_token?.substring(0, 20) + '...');
 
         try {
             const response = await fetch(`${API_URL}/api/tasks`, {
+                method: 'GET',
                 headers: this.getAuthHeaders()
             });
 
             console.log('Tasks response status:', response.status);
+            console.log('Tasks response headers:', Object.fromEntries(response.headers.entries()));
 
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                console.error('Failed to fetch tasks:', errorData);
-                throw new Error(errorData.error || 'Failed to fetch tasks');
+            // Handle unexpected 204 (No Content) - this should never happen for GET /tasks
+            if (response.status === 204) {
+                console.error('Unexpected 204 response for GET /tasks - this indicates a routing issue');
+                throw new Error('Server returned unexpected response. Please try again.');
             }
 
-            this.todos = await response.json();
+            if (!response.ok) {
+                const errorText = await response.text();
+                let errorData = {};
+                try {
+                    errorData = JSON.parse(errorText);
+                } catch {
+                    errorData = { error: errorText || 'Unknown error' };
+                }
+                console.error('Failed to fetch tasks:', response.status, errorData);
+                throw new Error(errorData.error || `Failed to fetch tasks (${response.status})`);
+            }
+
+            const data = await response.json();
+            this.todos = Array.isArray(data) ? data : [];
             console.log('Loaded tasks:', this.todos.length);
             this.render();
         } catch (error) {
             console.error('Error loading tasks:', error);
-            toast.error('Failed to load tasks. Please refresh the page.');
+            toast.error(error.message || 'Failed to load tasks. Please refresh the page.');
             this.todos = [];
             this.render();
         } finally {

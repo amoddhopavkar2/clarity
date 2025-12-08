@@ -17,8 +17,25 @@
         <div class="bg-orb bg-orb-1"></div>
         <div class="bg-orb bg-orb-2"></div>
 
+        <!-- Initial Loading Screen (shown while checking auth) -->
+        <div id="initialLoading" class="auth-screen">
+            <div class="auth-card">
+                <header class="auth-header">
+                    <h1 class="app-title">
+                        <span class="title-icon">✦</span>
+                        Clarity
+                    </h1>
+                    <p class="app-subtitle">Focus on what matters</p>
+                </header>
+                <div class="auth-content">
+                    <div class="loading-spinner"></div>
+                    <p style="text-align: center; color: var(--text-secondary); margin-top: 1rem;">Loading...</p>
+                </div>
+            </div>
+        </div>
+
         <!-- Auth Screen -->
-        <div id="authScreen" class="auth-screen">
+        <div id="authScreen" class="auth-screen hidden">
             <div class="auth-card">
                 <header class="auth-header">
                     <h1 class="app-title">

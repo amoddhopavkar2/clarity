@@ -177,6 +177,31 @@ app.put('/api/tasks/:id', authenticate, async (req, res) => {
     }
 });
 
+// Delete all completed tasks for user
+// IMPORTANT: This route must be defined BEFORE /api/tasks/:id
+// because Express matches routes in order and :id would match "completed"
+app.delete('/api/tasks/completed/all', authenticate, async (req, res) => {
+    try {
+        console.log('Clearing completed tasks for user:', req.user.id);
+
+        const { error } = await supabase
+            .from('tasks')
+            .delete()
+            .eq('user_id', req.user.id)
+            .eq('completed', true);
+
+        if (error) {
+            console.error('Supabase error clearing completed:', error);
+            throw error;
+        }
+
+        res.status(204).send();
+    } catch (error) {
+        console.error('Error clearing completed tasks:', error);
+        res.status(500).json({ error: 'Failed to clear completed tasks' });
+    }
+});
+
 // Delete a task
 app.delete('/api/tasks/:id', authenticate, async (req, res) => {
     try {
@@ -199,29 +224,6 @@ app.delete('/api/tasks/:id', authenticate, async (req, res) => {
     } catch (error) {
         console.error('Error deleting task:', error);
         res.status(500).json({ error: 'Failed to delete task' });
-    }
-});
-
-// Delete all completed tasks for user
-app.delete('/api/tasks/completed/all', authenticate, async (req, res) => {
-    try {
-        console.log('Clearing completed tasks for user:', req.user.id);
-
-        const { error } = await supabase
-            .from('tasks')
-            .delete()
-            .eq('user_id', req.user.id)
-            .eq('completed', true);
-
-        if (error) {
-            console.error('Supabase error clearing completed:', error);
-            throw error;
-        }
-
-        res.status(204).send();
-    } catch (error) {
-        console.error('Error clearing completed tasks:', error);
-        res.status(500).json({ error: 'Failed to clear completed tasks' });
     }
 });
 
