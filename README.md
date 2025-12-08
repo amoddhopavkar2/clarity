@@ -40,15 +40,14 @@ clarity/
 │   ├── app.js
 │   ├── styles.css
 │   ├── package.json
-│   ├── vite.config.js
-│   └── netlify.toml
+│   └── vite.config.js
 ├── server/                 # Backend API
 │   ├── src/
 │   │   └── index.js
 │   ├── package.json
 │   └── railway.json
+├── netlify.toml            # Netlify deployment config
 ├── supabase-schema.sql     # Database schema
-├── DEPLOYMENT.md           # Full deployment guide
 └── package.json            # Root package.json
 ```
 
@@ -98,12 +97,19 @@ clarity/
 
 ## Deployment
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for complete deployment instructions covering:
+### Supabase Setup
+1. Create a project at [supabase.com](https://supabase.com)
+2. Run the SQL from `supabase-schema.sql` in the SQL Editor
+3. Enable Google OAuth in Authentication > Providers
 
-- Supabase setup (database + Google OAuth)
-- Railway deployment (backend)
-- Netlify deployment (frontend)
-- Environment variable configuration
+### Backend (Railway)
+1. Connect your repo at [railway.app](https://railway.app)
+2. Set root directory to `server`
+3. Add environment variables: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `CLIENT_URL`
+
+### Frontend (Netlify)
+1. Connect your repo at [netlify.com](https://netlify.com)
+2. Add environment variables: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_API_URL`
 
 ## Environment Variables
 
