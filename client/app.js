@@ -318,9 +318,18 @@ class TodoApp {
     }
 
     getAuthHeaders() {
+        const token = this.session?.access_token;
+        if (!token) {
+            console.error('No access token available!', {
+                session: this.session,
+                hasSession: !!this.session,
+                hasAccessToken: !!this.session?.access_token
+            });
+        }
+        console.log('getAuthHeaders - token present:', !!token, 'token preview:', token?.substring(0, 30) + '...');
         return {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.session.access_token}`
+            'Authorization': `Bearer ${token}`
         };
     }
 
@@ -331,10 +340,14 @@ class TodoApp {
         console.log('Using token:', this.session.access_token?.substring(0, 20) + '...');
 
         try {
+            const headers = this.getAuthHeaders();
+            console.log('Fetch headers:', headers);
+
             const response = await fetch(`${API_URL}/api/tasks`, {
                 method: 'GET',
-                headers: this.getAuthHeaders(),
-                cache: 'no-store' // Prevent browser caching
+                headers: headers,
+                credentials: 'include',
+                cache: 'no-store'
             });
 
             console.log('Tasks response status:', response.status);
@@ -381,6 +394,7 @@ class TodoApp {
                 method: 'POST',
                 headers: this.getAuthHeaders(),
                 body: JSON.stringify({ text }),
+                credentials: 'include',
                 cache: 'no-store'
             });
 
@@ -409,6 +423,7 @@ class TodoApp {
                 method: 'PUT',
                 headers: this.getAuthHeaders(),
                 body: JSON.stringify(updates),
+                credentials: 'include',
                 cache: 'no-store'
             });
 
@@ -435,6 +450,7 @@ class TodoApp {
             const response = await fetch(`${API_URL}/api/tasks/${id}`, {
                 method: 'DELETE',
                 headers: this.getAuthHeaders(),
+                credentials: 'include',
                 cache: 'no-store'
             });
 
@@ -458,6 +474,7 @@ class TodoApp {
             const response = await fetch(`${API_URL}/api/tasks/completed/all`, {
                 method: 'DELETE',
                 headers: this.getAuthHeaders(),
+                credentials: 'include',
                 cache: 'no-store'
             });
 
